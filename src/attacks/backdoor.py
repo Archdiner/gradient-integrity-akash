@@ -1,158 +1,174 @@
-"""Targeted backdoor attack implementation.
+"""Backdoor data loader wrapper that poisons a fraction of batches.
 
-Adds a visual trigger pattern (4x4 white square, bottom-right corner)
-to poisoned images, causing them to be misclassified as the target class.
-The attacker poisons 20% of their local dataset with the trigger while
-keeping 80% clean to avoid detection from anomaly metrics.
+Wraps a DataLoader and poisons a configurable fraction of batches with a
+visual trigger pattern (4x4 white square, bottom-right corner), flipping
+labels to the target class. This is the correct implementation of a targeted
+backdoor: the client's model trains on poisoned data and learns the trigger-
+to-target mapping naturally, rather than manipulating gradients post-hoc.
 """
 
 from __future__ import annotations
 
 import torch
-import torchvision.transforms as transforms
-from typing import Literal
+from torch.utils.data import DataLoader, Dataset
+from typing import Iterator
 
 
-class BackdoorAttack:
-    """Targeted backdoor attack with visual trigger pattern.
+class BackdoorDataset(torch.utils.data.Dataset):
+    """Dataset wrapper that poisons a fraction of samples.
 
-    Args:
-        trigger_class: The class label that triggered images will be classified as.
-        poison_ratio: Fraction of attacker's local data to poison (0.0 to 1.0).
-        trigger_value: Pixel value for the white square trigger (default 1.0).
-        img_size: Image dimensions (default 32 for CIFAR-10).
-        trigger_size: Width/height of the trigger square in pixels.
-        device: Device to place trigger tensors on.
+    Poisons `poison_ratio` fraction of the underlying dataset with a visual
+    trigger and relabels to `target_class`. Samples are selected randomly
+    per epoch using a pre-generated poison mask.
     """
 
     def __init__(
         self,
-        trigger_class: int = 0,
+        base_dataset: Dataset,
         poison_ratio: float = 0.2,
-        trigger_value: float = 1.0,
-        img_size: int = 32,
+        target_class: int = 0,
         trigger_size: int = 4,
+        img_size: int = 32,
         device: str = "mps",
+        seed: int = 42,
     ) -> None:
-        self.trigger_class = trigger_class
+        self.base_dataset = base_dataset
         self.poison_ratio = poison_ratio
-        self.trigger_value = trigger_value
+        self.target_class = target_class
         self.img_size = img_size
-        self.trigger_size = trigger_size
         self.device = device
-        self._trigger_mask = self._build_trigger_mask()
 
-    def _build_trigger_mask(self) -> torch.Tensor:
-        """Build a binary mask with 1s in the bottom-right trigger region."""
-        mask = torch.zeros(3, self.img_size, self.img_size, device=self.device)
-        start = self.img_size - self.trigger_size
+        n = len(base_dataset)
+        rng = torch.Generator()
+        rng.manual_seed(seed)
+        poison_mask = torch.rand(n, generator=rng) < poison_ratio
+        self.poison_indices = torch.nonzero(poison_mask, as_tuple=False).squeeze(-1)
+
+        mask = torch.zeros(3, img_size, img_size)
+        start = img_size - trigger_size
         mask[:, start:, start:] = 1.0
-        return mask
+        self._trigger_mask = mask
 
-    def apply_trigger(self, images: torch.Tensor) -> torch.Tensor:
-        """Apply the trigger pattern to a batch of images.
+    def __len__(self) -> int:
+        return len(self.base_dataset)
 
-        Args:
-            images: Tensor of shape (B, C, H, W) in range [-1, 1].
+    def __getitem__(self, index: int) -> tuple[torch.Tensor, torch.Tensor]:
+        images, labels = self.base_dataset[index]
 
-        Returns:
-            Images with the bottom-right corner square set to trigger_value.
-        """
-        poisoned = images.clone()
-        poisoned = poisoned * (1 - self._trigger_mask.unsqueeze(0))
-        poisoned = poisoned + (self._trigger_mask.unsqueeze(0) * self.trigger_value)
-        return poisoned
+        if isinstance(images, tuple):
+            images = images[0]
+        if not isinstance(images, torch.Tensor):
+            images = torch.from_numpy(images)
 
-    def poison_batch(
-        self,
-        images: torch.Tensor,
-        labels: torch.Tensor,
-    ) -> tuple[torch.Tensor, torch.Tensor]:
-        """Poison a batch: apply trigger and flip labels to target class.
+        if isinstance(labels, int):
+            labels = torch.tensor(labels, dtype=torch.long)
+        elif isinstance(labels, list):
+            labels = torch.tensor(labels, dtype=torch.long)
+        elif not isinstance(labels, torch.Tensor):
+            labels = torch.tensor(labels, dtype=torch.long)
 
-        Args:
-            images: Clean image tensor (B, C, H, W).
-            labels: Original labels (B,).
+        is_poisoned = index in self.poison_indices
+        if is_poisoned:
+            images = self._apply_trigger(images)
+            labels = torch.tensor(self.target_class, dtype=torch.long)
 
-        Returns:
-            Tuple of (poisoned_images, poisoned_labels) where poisoned_labels
-            are all set to trigger_class.
-        """
-        poisoned_imgs = self.apply_trigger(images)
-        poisoned_labels = torch.full_like(labels, self.trigger_class)
-        return poisoned_imgs, poisoned_labels
+        return images, labels
+
+    def _apply_trigger(self, image: torch.Tensor) -> torch.Tensor:
+        """Apply the 4x4 white-square trigger to the bottom-right corner."""
+        if image.dim() == 3:
+            image = image * (1 - self._trigger_mask)
+            image = image + (self._trigger_mask * 1.0)
+        return image
 
     def __repr__(self) -> str:
+        n_poison = len(self.poison_indices)
         return (
-            f"BackdoorAttack(trigger_class={self.trigger_class}, "
-            f"poison_ratio={self.poison_ratio}, "
-            f"trigger_size={self.trigger_size}x{self.trigger_size}, "
-            f"position=bottom-right)"
+            f"BackdoorDataset(poison_ratio={self.poison_ratio}, "
+            f"target_class={self.target_class}, "
+            f"n_poisoned={n_poison}/{len(self.base_dataset)})"
         )
 
 
-class GradientMagnitudeAttack:
-    """Scales client gradients by a constant factor to disrupt convergence.
+class BackdoorDataLoader:
+    """Wraps a DataLoader and poisons batches at the dataset level.
 
-    This is a simpler attack than backdoor — it degrades main task accuracy
-    without needing a trigger pattern. Effective for testing aggregation
-    robustness.
+    This approach is cleaner than poisoning at the batch level because the
+    poison mask is fixed per epoch, ensuring a consistent fraction of each
+    client's data is poisoned throughout training.
     """
 
-    def __init__(self, scale: float = 10.0, device: str = "mps") -> None:
-        self.scale = scale
-        self.device = device
+    def __init__(
+        self,
+        base_loader: DataLoader,
+        poison_ratio: float = 0.2,
+        target_class: int = 0,
+        trigger_size: int = 4,
+        img_size: int = 32,
+        device: str = "mps",
+        seed: int = 42,
+    ) -> None:
+        dataset = base_loader.dataset
+        batch_size = base_loader.batch_size
+        shuffle = getattr(base_loader, "shuffle", False)
+        sampler = getattr(base_loader, "sampler", None)
+        drop_last = base_loader.drop_last
 
-    def apply(self, gradients: list[torch.Tensor]) -> list[torch.Tensor]:
-        """Scale each gradient tensor by self.scale."""
-        return [g * self.scale for g in gradients]
+        self.poisoned_dataset = BackdoorDataset(
+            base_dataset=dataset,
+            poison_ratio=poison_ratio,
+            target_class=target_class,
+            trigger_size=trigger_size,
+            img_size=img_size,
+            device=device,
+            seed=seed,
+        )
+        self.loader = DataLoader(
+            self.poisoned_dataset,
+            batch_size=batch_size,
+            shuffle=shuffle,
+            sampler=sampler,
+            num_workers=base_loader.num_workers,
+            pin_memory=base_loader.pin_memory,
+            drop_last=drop_last,
+            collate_fn=base_loader.collate_fn,
+        )
 
-    def __repr__(self) -> str:
-        return f"GradientMagnitudeAttack(scale={self.scale})"
+    def __iter__(self) -> Iterator[tuple[torch.Tensor, torch.Tensor]]:
+        return iter(self.loader)
+
+    @property
+    def dataset(self):
+        return self.poisoned_dataset
 
 
-def apply_byzfl_attack(
-    gradients: list[torch.Tensor],
-    attack_name: Literal["SignFlipping", "Gaussian", "ALIE", "IPM", "Mimic"],
-    f: int,
-    **kwargs,
-) -> list[torch.Tensor]:
-    """Apply a ByzFL attack to a list of gradient tensors.
+def create_byzantine_loaders(
+    honest_loaders: list[DataLoader],
+    n_byz: int,
+    poison_ratio: float = 0.2,
+    target_class: int = 0,
+    trigger_size: int = 4,
+    img_size: int = 32,
+    device: str = "mps",
+    seed: int = 42,
+) -> list[BackdoorDataLoader]:
+    """Create backdoor-poisoned dataloaders for Byzantine clients.
 
-    Args:
-        gradients: List of gradient tensors from honest clients.
-        attack_name: One of the ByzFL attack class names.
-        f: Number of Byzantine clients (determines how many attack vectors).
-        **kwargs: Passed to the attack constructor.
-
-    Returns:
-        List of Byzantine gradient vectors (length = f).
+    Creates `n_byz` poisoned loaders, each wrapping a copy of the honest
+    client loaders (or a subset thereof) with the specified poison ratio.
+    In practice each Byzantine client poisons their own local dataset.
     """
-    import byzfl
-
-    byzfl_module = byzfl
-
-    if attack_name == "SignFlipping":
-        attacker = byzfl_module.SignFlipping()
-    elif attack_name == "Gaussian":
-        mu = kwargs.get("mu", 0.0)
-        sigma = kwargs.get("sigma", 1.0)
-        attacker = byzfl_module.Gaussian(mu=mu, sigma=sigma)
-    elif attack_name == "ALIE":
-        tau = kwargs.get("tau", 3.0)
-        attacker = byzfl_module.ALittleIsEnough(tau=tau)
-    elif attack_name == "IPM":
-        tau = kwargs.get("tau", 3.0)
-        attacker = byzfl_module.InnerProductManipulation(tau=tau)
-    elif attack_name == "Mimic":
-        epsilon = kwargs.get("epsilon", 0.1)
-        attacker = byzfl_module.Mimic(epsilon=epsilon)
-    else:
-        raise ValueError(f"Unknown attack: {attack_name}")
-
-    byz_vectors = []
-    for _ in range(f):
-        byz_grad = attacker(gradients)
-        byz_vectors.append(byz_grad)
-
-    return byz_vectors
+    byz_loaders = []
+    for i in range(n_byz):
+        base_loader = honest_loaders[i % len(honest_loaders)]
+        byz_loader = BackdoorDataLoader(
+            base_loader=base_loader,
+            poison_ratio=poison_ratio,
+            target_class=target_class,
+            trigger_size=trigger_size,
+            img_size=img_size,
+            device=device,
+            seed=seed + i + 1000,
+        )
+        byz_loaders.append(byz_loader)
+    return byz_loaders
