@@ -1,0 +1,6 @@
+# <type>: <description>
+#
+# Types: feat, fix, exp, docs, test, refactor, chore
+# Keep subject line under 72 chars
+#
+# Body (optional): explain WHAT and WHY, not HOW

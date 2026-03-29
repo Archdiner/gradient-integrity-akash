@@ -1,0 +1,47 @@
+{
+  "permissions": {
+    "allow": [
+      "Read",
+      "Write src/**",
+      "Write tests/**",
+      "Write akash/**",
+      "Write autoresearch/**",
+      "Write paper/**",
+      "Write agent_docs/**",
+      "Write notebooks/**",
+      "Write figures/**",
+      "Bash(pytest*)",
+      "Bash(python -m src.*)",
+      "Bash(python src/**)",
+      "Bash(git *)",
+      "Bash(pip install*)",
+      "Bash(wandb *)",
+      "Bash(black *)",
+      "Bash(isort *)",
+      "Bash(cat *)",
+      "Bash(ls *)",
+      "Bash(head *)",
+      "Bash(tail *)",
+      "Bash(wc *)"
+    ],
+    "deny": [
+      "Write results/**",
+      "Bash(rm -rf *)",
+      "Bash(curl *)",
+      "Bash(wget *)"
+    ]
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "black --quiet --check $FILE 2>/dev/null || true"
+          }
+        ]
+      }
+    ]
+  }
+}
