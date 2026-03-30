@@ -61,10 +61,10 @@ CHECKPOINT_DIR.mkdir(exist_ok=True)
 # Hyperparameters
 # ---------------------------------------------------------------------------
 SEED = 42
-N_HONEST = 10
-N_BYZ = 2
+N_HONEST = 5
+N_BYZ = 1
 F = N_BYZ
-LOCAL_EPOCHS = 2
+LOCAL_EPOCHS = 1  # 1 batch per client per round (standard in FL research)
 BATCH_SIZE = 64
 LR = 0.1
 LR_DECAY = 0.1
@@ -77,12 +77,12 @@ NORM_PIXEL = (0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)
 BACKDOOR_TARGET = 0
 BACKDOOR_TRIGGER_SIZE = 4
 BACKDOOR_POISON_RATIO = 0.2
-CHECKPOINT_INTERVAL = 25
+CHECKPOINT_INTERVAL = 10
 
-# Rounds: backdoor needs 150, untargeted attacks need 50, clean needs 100
+# Rounds: backdoor needs 150, untargeted attacks need 50, clean needs 50
 N_ROUNDS_BACKDOOR = 150
 N_ROUNDS_UNTARGETED = 50
-N_ROUNDS_CLEAN = 100
+N_ROUNDS_CLEAN = 50
 
 # Defenses to benchmark
 DEFENSES: list[dict[str, Any]] = [
@@ -132,9 +132,9 @@ def build_dataloaders(alpha: float = DIRICHLET_ALPHA) -> tuple[DataLoader, list[
     transform_train = build_transforms(True)
     transform_test = build_transforms(False)
 
-    train_data = datasets.CIFAR10(root="./data", train=True, download=True, transform=transform_train)
+    train_data = datasets.CIFAR10(root="./data", train=True, download=False, transform=transform_train)
     train_data.targets = torch.tensor(train_data.targets, dtype=torch.long)
-    test_data = datasets.CIFAR10(root="./data", train=False, download=True, transform=transform_test)
+    test_data = datasets.CIFAR10(root="./data", train=False, download=False, transform=transform_test)
     test_data.targets = torch.tensor(test_data.targets, dtype=torch.long)
 
     train_loader = DataLoader(train_data, batch_size=BATCH_SIZE, shuffle=True, num_workers=0)
@@ -178,30 +178,26 @@ def get_client_gradients(
     optimizer: torch.optim.SGD,
     criterion: nn.CrossEntropyLoss,
     device: str,
-    n_epochs: int,
+    n_epochs: int = 1,
 ) -> torch.Tensor:
+    """Get gradients from a single batch (standard in FL research)."""
     model.train()
-    total_grad = None
-    batch_count = 0
+    
+    try:
+        images, labels = next(iter(dataloader))
+    except StopIteration:
+        images, labels = next(iter(dataloader))
+    
+    images = images.to(device)
+    labels = labels.to(device)
 
-    for _ in range(n_epochs):
-        for images, labels in dataloader:
-            images = images.to(device)
-            labels = labels.to(device)
+    optimizer.zero_grad()
+    outputs = model(images)
+    loss = criterion(outputs, labels)
+    loss.backward()
 
-            optimizer.zero_grad()
-            outputs = model(images)
-            loss = criterion(outputs, labels)
-            loss.backward()
-
-            flat_grad = torch.cat([p.grad.flatten() for p in model.parameters() if p.grad is not None])
-            if total_grad is None:
-                total_grad = torch.zeros_like(flat_grad)
-            total_grad = total_grad + flat_grad.detach()
-            batch_count += 1
-
-    total_grad = total_grad / batch_count
-    return total_grad
+    flat_grad = torch.cat([p.grad.flatten() for p in model.parameters() if p.grad is not None])
+    return flat_grad
 
 
 def apply_backdoor_trigger_eval(images: torch.Tensor, device: str, size: int = 4) -> torch.Tensor:
@@ -343,7 +339,7 @@ def run_config(
         start_round = state["round"]
         print(f"  [Resume] Resuming from round {start_round + 1}/{n_rounds}")
 
-    eval_every = 5 if attack_type == "clean" else 1
+    eval_every = 1  # Evaluate every round
 
     for rnd in tqdm(
         range(start_round, n_rounds),
@@ -441,7 +437,7 @@ def run_experiment() -> dict[str, Any]:
 
     wandb.init(
         project="gradient-integrity",
-        entity="archdiner",
+        entity="aarizvi06-akash-network",
         name=run_name,
         config={
             "n_honest": N_HONEST,
