@@ -66,9 +66,9 @@ N_BYZ = 1
 F = N_BYZ
 LOCAL_EPOCHS = 1  # 1 batch per client per round (standard in FL research)
 BATCH_SIZE = 64
-LR = 0.1
+LR = 0.05  # 0.1 explodes on MPS with ResNet-18 (causes NaN)
 LR_DECAY = 0.1
-LR_MILESTONES = [30, 45]
+LR_MILESTONES = [200, 350]
 WEIGHT_DECAY = 1e-4
 MOMENTUM = 0.9
 DIRICHLET_ALPHA = 0.5
@@ -80,9 +80,9 @@ BACKDOOR_POISON_RATIO = 0.2
 CHECKPOINT_INTERVAL = 10
 
 # Rounds: backdoor needs 150, untargeted attacks need 50, clean needs 50
-N_ROUNDS_BACKDOOR = 150
-N_ROUNDS_UNTARGETED = 50
-N_ROUNDS_CLEAN = 50
+N_ROUNDS_BACKDOOR = 250  # More rounds needed for 1 batch/round
+N_ROUNDS_UNTARGETED = 100
+N_ROUNDS_CLEAN = 100
 
 # Defenses to benchmark
 DEFENSES: list[dict[str, Any]] = [
@@ -92,7 +92,8 @@ DEFENSES: list[dict[str, Any]] = [
     {"name": "TrMean", "class": TrMean, "params": {"f": F}, "rounds": N_ROUNDS_UNTARGETED},
     {"name": "Median", "class": Median, "params": {}, "rounds": N_ROUNDS_UNTARGETED},
     {"name": "GeoMed", "class": GeometricMedian, "params": {"nu": 1e-6, "T": 100}, "rounds": N_ROUNDS_UNTARGETED},
-    {"name": "CentClip", "class": CenteredClipping, "params": {"m": 2 * F, "L": 10.0, "tau": 1.0}, "rounds": N_ROUNDS_UNTARGETED},
+    # CentClip disabled - ByzFL bug with m parameter
+    # {"name": "CentClip", "class": CenteredClipping, "params": {"m": 2 * F, "L": 10, "tau": 1.0}, "rounds": N_ROUNDS_UNTARGETED},
 ]
 
 # Attack configurations: separate backdoor from untargeted
@@ -332,11 +333,23 @@ def run_config(
 
     ckpt = find_latest_checkpoint(experiment_id, defense_name, attack_name)
     if ckpt is not None:
-        print(f"  [Resume] Found checkpoint: {ckpt.name}")
         state = load_checkpoint(ckpt)
+        start_round = state["round"]
+        if start_round >= n_rounds:
+            print(f"  [Skip] {defense_name}+{attack_name} already complete ({start_round}/{n_rounds})")
+            return {
+                "defense": defense_name,
+                "attack": attack_name,
+                "attack_type": attack_type,
+                "run_id": f"{experiment_id}-{defense_name}-{attack_name}",
+                "rounds": state["results_so_far"],
+                "final_mta": state["results_so_far"][-1]["mta"] if state["results_so_far"] else 0.0,
+                "final_asr": state["results_so_far"][-1]["asr"] if state["results_so_far"] else 0.0,
+                "avg_round_time": 0.0,
+            }
+        print(f"  [Resume] Found checkpoint: {ckpt.name}")
         model.load_state_dict(state["model_state"])
         results["rounds"] = state["results_so_far"]
-        start_round = state["round"]
         print(f"  [Resume] Resuming from round {start_round + 1}/{n_rounds}")
 
     eval_every = 1  # Evaluate every round
@@ -432,7 +445,7 @@ def run_config(
 def run_experiment() -> dict[str, Any]:
     wandb.login(key="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")
 
-    experiment_id = str(uuid.uuid4())[:8]
+    experiment_id = "7252ae14"  # Fixed to resume from existing checkpoints
     run_name = f"cifar10-{experiment_id}-{datetime.now().strftime('%H%M%S')}"
 
     wandb.init(
