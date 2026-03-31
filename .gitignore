@@ -39,3 +39,8 @@ credentials.json
 # Large files
 *.tar.gz
 *.zip
+
+# Log files
+*.log
+results/*.txt
+results/*.json
