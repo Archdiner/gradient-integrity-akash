@@ -5,19 +5,26 @@ Research project testing Byzantine-resilient aggregation methods
 against gradient poisoning attacks in decentralized training
 (Akash Network). Goal: arXiv paper + open-source toolkit.
 
+## Current Status
+**Phase 1 complete** — Local experiments on MacBook M4:
+- CIFAR-10 (training from scratch): Attacks work, defenses have tradeoffs
+- Scalability timing: Defenses don't scale to 82M dimensions
+- GPT-2 fine-tuning: Negative result (0% ASR, implicitly robust)
+
+**Phase 2 pending** — Akash deployment for from-scratch LLM training
+
 ## Tech stack
 - Python 3.11+, PyTorch, HuggingFace Transformers
-- ByzFL (EPFL) for Byzantine FL simulation
+- Custom PyTorch aggregators (bypasses ByzFL scipy issues on MPS)
 - Flower (flwr) for real distributed FL on Akash
 - Weights & Biases for experiment tracking
 - LaTeX (NeurIPS template) for the paper
 
 ## Project structure
-- src/attacks/ — attack implementations (backdoor, gradient scaling)
-- src/defenses/ — defense implementations (ByzFL wrappers + novel)
-- src/models/ — federated model wrappers (GPT-2)
-- src/experiments/ — experiment runners and configs
-- src/utils/ — metrics (MTA, ASR), logging, helpers
+- src/attacks/ — attack implementations (backdoor, scaling, ALIE)
+- src/defenses/ — custom PyTorch aggregators (krum, multi_krum, coordinate_median, trimmed_mean)
+- src/models/ — federated model wrappers (ResNet-18, DistilGPT-2)
+- src/experiments/ — experiment runners
 - results/ — raw JSON output from experiments
 - paper/ — LaTeX source
 
@@ -26,13 +33,56 @@ against gradient poisoning attacks in decentralized training
 - @agent_docs/coding_conventions.md — code style rules
 - @agent_docs/git_workflow.md — branching strategy
 - @agent_docs/paper_structure.md — paper outline and citation list
+- @agent_docs/project_overview.md — research question and phases
 
-## ByzFL API notes
-- Aggregators: `Krum`, `MultiKrum`, `TrMean`, `Median`, `GeometricMedian`, `CenteredClipping`, `Average`
-- Pipeline: `Client`, `Server`, `ByzantineClient`, `DataDistributor`
-- Models: `ResNet18` (and other ResNet variants)
-- Attacks: `SignFlipping`, `LabelFlipping`, `Gaussian`, `ALittleIsEnough`, `Mimic`, `SMEA`
-- Note: TrimmedMean is called `TrMean` in ByzFL
+## Key findings
+
+### CIFAR-10 (training from scratch)
+| Defense | Clean MTA | Backdoor ASR |
+|---------|-----------|--------------|
+| FedAvg  | 44.5%     | 9.9%         |
+| Krum    | 16.4%     | 11.8%        |
+| MultiKrum | 24.3%   | 4.7%         |
+| Median  | 34.9%     | 12.2%        |
+
+Attacks are effective. Defenses trade off clean accuracy for robustness.
+
+### GPT-2 fine-tuning (82M params)
+- 20 configs: 5 defenses × 4 attacks
+- All attacks: 0% ASR
+- Perplexity: 2.35-2.39 (no meaningful variation)
+
+**Negative result**: Fine-tuning pretrained models is implicitly robust
+against gradient poisoning. The threat model changes fundamentally when
+moving from training-from-scratch to fine-tuning.
+
+### Timing at 82M gradient dimensions
+| Defense    | Time/round |
+|------------|------------|
+| FedAvg     | 2.5-2.9s   |
+| Krum       | 3.4-3.7s   |
+| MultiKrum  | 3.8-4.0s   |
+| Median     | 6.2-6.4s   |
+| ALIE       | 9.0-13.0s  |
+
+Validates that defenses don't scale to LLM dimensions on consumer hardware.
+
+## Running experiments
+```bash
+source .venv/bin/activate
+
+# CIFAR-10 benchmark (~4-5 hours)
+caffeinate -s python -m src.experiments.cifar10_benchmark
+
+# GPT-2 benchmark (~40-50 minutes)
+caffeinate -s python -m src.experiments.gpt2_phase2
+```
+
+## Custom aggregators (for MPS compatibility)
+```python
+from src.experiments.gpt2_phase2 import krum, multi_krum, coordinate_median, trimmed_mean
+```
+All use torch.cdist for pairwise distances — stays on MPS, no CPU transfer.
 
 ## Coding conventions
 - Type hints on all function signatures
@@ -47,22 +97,14 @@ against gradient poisoning attacks in decentralized training
 ## Testing
 ```bash
 source .venv/bin/activate
-pytest tests/ -v                # run all tests
-pytest tests/test_attacks.py -v # run attack tests only
-python -m src.experiments.cifar10_benchmark  # run CIFAR experiment
+pytest tests/ -v
 ```
-
-## Key metrics
-- MTA (Main Task Accuracy): accuracy on clean test data
-- ASR (Attack Success Rate): % of triggered inputs classified as target
-- Time/round: wall-clock seconds per aggregation round
-- A good defense: MTA > 82%, ASR < 10%, overhead < 2x FedAvg
 
 ## Git workflow
 - main: stable, passing tests only
 - dev: integration branch
 - feature/[name]: individual features
-- experiment/[name]: experiment branches that may break things
+- experiment/[name]: experiment branches
 - Always create a branch. Never commit directly to main.
 - Commit messages: "type: description" (feat:, fix:, exp:, docs:, test:)
 
