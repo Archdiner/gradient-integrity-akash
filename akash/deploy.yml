@@ -12,6 +12,8 @@ services:
       - ROLE=worker
       - NODE_ID=0
       - TOTAL_NODES=3
+      - WANDB_API_KEY=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
+      - WANDB_MODE=online
     args:
       - "--model"
       - "small"
