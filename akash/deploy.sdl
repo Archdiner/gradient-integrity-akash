@@ -2,7 +2,7 @@ version: "2.0"
 
 services:
   trainer:
-    image: aarizvi/gradient-integrity-akash:latest
+    image: asadrizvi06/gradient-integrity:latest
     expose:
       - port: 8080
         as: 80
