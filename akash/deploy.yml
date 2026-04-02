@@ -12,7 +12,7 @@ services:
       - ROLE=worker
       - NODE_ID=0
       - TOTAL_NODES=3
-    cmd:
+    args:
       - "--model"
       - "small"
       - "--rounds"
@@ -40,6 +40,8 @@ profiles:
             vendor:
               nvidia:
                 - model: a100_80gb
+        storage:
+          size: 100Gi
   placement:
     akash:
       pricing:
