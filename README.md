@@ -39,12 +39,13 @@ gradient-integrity-akash/
 │       ├── cifar10_benchmark.py    # CIFAR-10 experiments
 │       └── gpt2_phase2.py           # GPT-2 fine-tuning experiments
 ├── notebooks/
-│   └── phase1_analysis.ipynb        # Results visualization
-├── figures/                # Generated plots
+│   ├── README.md                        # Curated notebook policy
+│   └── phase2c_regime_comparison.ipynb # Paper-facing Phase 2C visuals
+├── agent_docs/              # Experiment notes and run summaries
 ├── results/
-│   ├── checkpoints/       # Model checkpoints
-│   └── *.json             # Experiment results
-├── paper/                  # LaTeX source for paper
+│   ├── expected/          # Small checked-in expectation/reference JSONs
+│   └── akash_*/run.json   # Local run artifacts (curate before commit)
+├── akash/                  # Deployment configs and orchestration
 └── requirements.txt
 ```
 
@@ -115,8 +116,8 @@ caffeinate -s python -m src.experiments.cifar10_benchmark
 # Run GPT-2 benchmark (~40-50 minutes)
 caffeinate -s python -m src.experiments.gpt2_phase2
 
-# Run analysis notebook
-jupyter notebook notebooks/phase1_analysis.ipynb
+# Run curated Phase 2C analysis notebook
+jupyter notebook notebooks/phase2c_regime_comparison.ipynb
 ```
 
 ## Hardware
