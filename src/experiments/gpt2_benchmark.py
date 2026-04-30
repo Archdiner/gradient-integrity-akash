@@ -353,10 +353,7 @@ def run_config(
 def main() -> None:
     global tokenizer
     
-    wandb_key = os.environ.get("WANDB_API_KEY")
-    if wandb_key:
-        wandb.login(key=wandb_key)
-    else:
+    if not os.environ.get("WANDB_API_KEY"):
         print("WARNING: WANDB_API_KEY not set; relying on existing wandb auth/session.")
     
     experiment_id = str(datetime.now().strftime("%Y%m%d_%H%M%S"))
