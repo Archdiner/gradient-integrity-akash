@@ -1,0 +1,30 @@
+{
+  "source": "synthetic expected-result fixture; see agent_docs/expected_akash_results.md",
+  "config": {
+    "model_size": "small",
+    "n_rounds": 200,
+    "batch_size": 8,
+    "lr": 0.0006,
+    "n_honest": 2,
+    "n_byz": 1,
+    "attack_type": "alie",
+    "defense": "FedAvg",
+    "lambda": 10.0,
+    "z_alie": 1.5
+  },
+  "rounds": [
+    {"round": 1,   "perplexity": 32000.0, "lr": 6.00e-04, "round_time": 55.0, "agg_time": 0.19, "apply_time": 0.12},
+    {"round": 10,  "perplexity":  5000.0, "lr": 5.97e-04, "round_time": 50.0, "agg_time": 0.19, "apply_time": 0.12},
+    {"round": 50,  "perplexity":   300.0, "lr": 5.11e-04, "round_time": 50.0, "agg_time": 0.19, "apply_time": 0.12},
+    {"round": 100, "perplexity":    80.0, "lr": 3.05e-04, "round_time": 50.0, "agg_time": 0.19, "apply_time": 0.12},
+    {"round": 150, "perplexity":    45.0, "lr": 8.06e-05, "round_time": 50.0, "agg_time": 0.19, "apply_time": 0.12},
+    {"round": 200, "perplexity":    30.0, "lr": 3.53e-08, "round_time": 50.0, "agg_time": 0.19, "apply_time": 0.12}
+  ],
+  "expected_band": {
+    "perplexity_final": {"low": 18.0, "mid": 30.0, "high": 60.0},
+    "asr_final":        {"computed": false},
+    "round_time":       {"low": 35.0, "mid": 50.0, "high": 90.0},
+    "agg_time":         {"low": 0.15, "mid": 0.19, "high": 0.25},
+    "notes": "ALIE (z=1.5) with undefended FedAvg. Stealthier than scaling -- Byzantine gradient stays within 1.5 std of honest mean -- so convergence is slowed but not catastrophic. Expected to be noticeably worse than clean FedAvg."
+  }
+}

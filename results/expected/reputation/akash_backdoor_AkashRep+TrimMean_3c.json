@@ -1,0 +1,40 @@
+{
+  "source": "synthetic expected-result fixture for the reputation-weighted defense; see agent_docs/expected_akash_reputation_results.md",
+  "config": {
+    "model_size": "small",
+    "n_rounds": 200,
+    "batch_size": 8,
+    "lr": 0.0006,
+    "n_honest": 2,
+    "n_byz": 1,
+    "attack_type": "backdoor",
+    "defense": "AkashRep+TrimMean",
+    "lambda": 10.0,
+    "z_alie": 1.5,
+    "weights_realistic": {"honest": 0.85, "byzantine": 0.30},
+    "weight_use": "drop f lowest-weight clients first, then mean of remaining"
+  },
+  "rounds": [
+    {"round": 1,   "perplexity": 27000.0, "lr": 6.00e-04, "round_time": 53.5, "agg_time": 2.55, "apply_time": 0.12, "asr": 0.02},
+    {"round": 10,  "perplexity":  1200.0, "lr": 5.97e-04, "round_time": 53.5, "agg_time": 2.55, "apply_time": 0.12, "asr": 0.03},
+    {"round": 50,  "perplexity":    80.0, "lr": 5.11e-04, "round_time": 53.5, "agg_time": 2.55, "apply_time": 0.12, "asr": 0.04},
+    {"round": 100, "perplexity":    28.0, "lr": 3.05e-04, "round_time": 53.5, "agg_time": 2.55, "apply_time": 0.12, "asr": 0.05},
+    {"round": 150, "perplexity":    19.0, "lr": 8.06e-05, "round_time": 53.5, "agg_time": 2.55, "apply_time": 0.12, "asr": 0.06},
+    {"round": 200, "perplexity":    16.0, "lr": 3.53e-08, "round_time": 53.5, "agg_time": 2.55, "apply_time": 0.12, "asr": 0.06}
+  ],
+  "expected_band": {
+    "perplexity_final": {"low": 11.0, "mid": 16.0, "high": 24.0},
+    "asr_final":        {"low": 0.02, "mid": 0.06, "high": 0.15, "computed": true},
+    "round_time":       {"low": 38.0, "mid": 53.5, "high": 95.5},
+    "agg_time":         {"low": 2.05, "mid": 2.55, "high": 3.25},
+    "band_semantics":   "low = oracle (Byz always trimmed by zero weight), mid = realistic, high = degraded (Byz weight beats honest -> wrong trim)",
+    "notes": "Weighted TrimMean drops the lowest-weight client first. In oracle mode this is deterministic Byzantine removal. In realistic mode w_byz=0.30 < w_honest=0.85 still trims correctly. In degraded mode w_byz=0.70 > w_honest=0.65 trims an honest client instead -- the inversion that makes the high band 0.15 instead of staying low."
+  },
+  "comparison_to_baseline": {
+    "baseline_fixture": "results/expected/akash_backdoor_TrimMean_3c.json",
+    "baseline_asr_mid": 0.09,
+    "expected_gain_asr_realistic": 0.03,
+    "publishability_threshold": "AkashRep+TrimMean ASR mid <= AkashRep+FedAvg ASR mid",
+    "publishability_status_at_mid": "passes (0.06 <= 0.30)"
+  }
+}

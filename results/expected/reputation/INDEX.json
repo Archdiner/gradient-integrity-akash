@@ -1,0 +1,149 @@
+{
+  "source": "Summary index of synthetic expected-result fixtures for the reputation-weighted defense (the actual research contribution).",
+  "reference_doc": "agent_docs/expected_akash_reputation_results.md",
+  "baseline_index": "results/expected/INDEX.json",
+  "schema_matches": "results/akash_*.json (as produced by src/experiments/akash_fromscratch.py), with added expected_band, comparison_to_baseline blocks",
+  "model": {
+    "size": "small",
+    "params": 124000000,
+    "dataset": "TinyStories",
+    "n_rounds": 200
+  },
+  "weight_regimes": {
+    "oracle":    {"w_honest": 1.00, "w_byzantine": 0.00, "byz_share_pct":  0.0, "story": "perfect Akash signal; defense reduces to clean run"},
+    "realistic": {"w_honest": 0.85, "w_byzantine": 0.30, "byz_share_pct": 15.0, "story": "Byzantine has shorter lease history + minimum audited attributes; PAPER HEADLINE"},
+    "degraded":  {"w_honest": 0.65, "w_byzantine": 0.70, "byz_share_pct": 35.0, "story": "aged sock-puppet provider gamed reputation; defense is worse than uniform; SECTION 8 CAVEAT"}
+  },
+  "band_semantics_note": "low = oracle weights (best metric), mid = realistic (paper headline), high = degraded (worst case). UNUSUAL convention -- bands are scenario-edges, not confidence intervals.",
+  "fixtures": [
+    {
+      "file": "akash_scaling_AkashRep+FedAvg_3c.json",
+      "defense": "AkashRep+FedAvg", "attack": "scaling", "n_clients": 3,
+      "perplexity_final": {"oracle": 12.0, "realistic": 30.0, "degraded": 110.0},
+      "asr_final": null,
+      "round_time": {"low": 35.0, "mid": 50.5, "high": 91.0},
+      "agg_time":   {"low": 0.18, "mid": 0.24, "high": 0.32},
+      "baseline_compare": {
+        "vs": "akash_scaling_FedAvg_3c.json",
+        "baseline_mid": 100.0,
+        "gain_realistic": 70.0,
+        "publishable": true
+      }
+    },
+    {
+      "file": "akash_alie_AkashRep+FedAvg_3c.json",
+      "defense": "AkashRep+FedAvg", "attack": "alie", "n_clients": 3,
+      "perplexity_final": {"oracle": 12.0, "realistic": 20.0, "degraded": 40.0},
+      "asr_final": null,
+      "round_time": {"low": 35.0, "mid": 50.5, "high": 91.0},
+      "agg_time":   {"low": 0.18, "mid": 0.24, "high": 0.32},
+      "baseline_compare": {
+        "vs": "akash_alie_FedAvg_3c.json",
+        "baseline_mid": 30.0,
+        "gain_realistic": 10.0,
+        "publishable": true
+      }
+    },
+    {
+      "file": "akash_backdoor_AkashRep+FedAvg_3c.json",
+      "defense": "AkashRep+FedAvg", "attack": "backdoor", "n_clients": 3,
+      "perplexity_final": {"oracle": 10.0, "realistic": 14.0, "degraded": 22.0},
+      "asr_final":        {"oracle": 0.05, "realistic": 0.30, "degraded": 0.65},
+      "round_time": {"low": 35.0, "mid": 50.5, "high": 91.0},
+      "agg_time":   {"low": 0.18, "mid": 0.24, "high": 0.32},
+      "baseline_compare": {
+        "vs": "akash_backdoor_FedAvg_3c.json",
+        "baseline_asr_mid": 0.60,
+        "gain_realistic_asr": 0.30,
+        "publishable": true,
+        "headline": true
+      }
+    },
+    {
+      "file": "akash_backdoor_AkashRep+Krum_3c.json",
+      "defense": "AkashRep+Krum", "attack": "backdoor", "n_clients": 3,
+      "perplexity_final": {"oracle": 12.0, "realistic": 18.0, "degraded": 28.0},
+      "asr_final":        {"oracle": 0.02, "realistic": 0.05, "degraded": 0.20},
+      "round_time": {"low": 38.0, "mid": 53.5, "high": 95.5},
+      "agg_time":   {"low": 2.05, "mid": 2.55, "high": 3.25},
+      "baseline_compare": {
+        "vs": "akash_backdoor_Krum_3c.json",
+        "baseline_asr_mid": 0.08,
+        "gain_realistic_asr": 0.03,
+        "publishable": true,
+        "compositional": true
+      }
+    },
+    {
+      "file": "akash_backdoor_AkashRep+TrimMean_3c.json",
+      "defense": "AkashRep+TrimMean", "attack": "backdoor", "n_clients": 3,
+      "perplexity_final": {"oracle": 11.0, "realistic": 16.0, "degraded": 24.0},
+      "asr_final":        {"oracle": 0.02, "realistic": 0.06, "degraded": 0.15},
+      "round_time": {"low": 38.0, "mid": 53.5, "high": 95.5},
+      "agg_time":   {"low": 2.05, "mid": 2.55, "high": 3.25},
+      "baseline_compare": {
+        "vs": "akash_backdoor_TrimMean_3c.json",
+        "baseline_asr_mid": 0.09,
+        "gain_realistic_asr": 0.03,
+        "publishable": true,
+        "compositional": true
+      }
+    },
+    {
+      "file": "akash_backdoor_AkashRep+Median_3c.json",
+      "defense": "AkashRep+Median", "attack": "backdoor", "n_clients": 3,
+      "perplexity_final": {"oracle": 11.0, "realistic": 17.0, "degraded": 26.0},
+      "asr_final":        {"oracle": 0.02, "realistic": 0.05, "degraded": 0.13},
+      "round_time": {"low": 42.0, "mid": 57.5, "high": 100.5},
+      "agg_time":   {"low": 5.55, "mid": 6.85, "high": 8.55},
+      "baseline_compare": {
+        "vs": "akash_backdoor_Median_3c.json",
+        "baseline_asr_mid": 0.07,
+        "gain_realistic_asr": 0.02,
+        "publishable": true,
+        "compositional": true
+      }
+    }
+  ],
+  "publishability_thresholds": {
+    "primary": {
+      "rule": "AkashRep+FedAvg backdoor ASR mid < 0.40",
+      "passes_at_predicted_mid": true,
+      "predicted_mid": 0.30
+    },
+    "secondary_systems_claim": {
+      "rule": "all AkashRep cells round_time within 10% of inner aggregator",
+      "passes_at_predicted_mid": true,
+      "max_observed_overhead_pct": 1.0
+    },
+    "compositional": {
+      "rule": "AkashRep+Krum ASR mid <= AkashRep+FedAvg ASR mid",
+      "passes_at_predicted_mid": true,
+      "predicted_krum_mid": 0.05,
+      "predicted_fedavg_mid": 0.30
+    }
+  },
+  "minimum_run_matrix_for_paper": {
+    "n_leases": 3,
+    "approx_gpu_hours": 9,
+    "cells": [
+      "clean / FedAvg / 3c (calibration)",
+      "backdoor / FedAvg / 3c (baseline ASR confirmation)",
+      "backdoor / AkashRep+FedAvg / 3c (HEADLINE)"
+    ]
+  },
+  "full_run_matrix_for_paper": {
+    "n_leases": 8,
+    "approx_gpu_hours": 24,
+    "cells": [
+      "clean / FedAvg / 3c",
+      "backdoor / FedAvg / 3c",
+      "backdoor / AkashRep+FedAvg / 3c (realistic)",
+      "backdoor / AkashRep+FedAvg / 3c (degraded ablation)",
+      "backdoor / Krum / 3c",
+      "backdoor / AkashRep+Krum / 3c",
+      "scaling / AkashRep+FedAvg / 3c",
+      "alie / AkashRep+FedAvg / 3c"
+    ]
+  }
+}

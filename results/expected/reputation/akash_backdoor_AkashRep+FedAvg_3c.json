@@ -1,0 +1,41 @@
+{
+  "source": "synthetic expected-result fixture for the reputation-weighted defense; see agent_docs/expected_akash_reputation_results.md",
+  "config": {
+    "model_size": "small",
+    "n_rounds": 200,
+    "batch_size": 8,
+    "lr": 0.0006,
+    "n_honest": 2,
+    "n_byz": 1,
+    "attack_type": "backdoor",
+    "defense": "AkashRep+FedAvg",
+    "lambda": 10.0,
+    "z_alie": 1.5,
+    "weights_realistic": {"honest": 0.85, "byzantine": 0.30},
+    "byz_share_of_aggregate_pct": 15.0
+  },
+  "rounds": [
+    {"round": 1,   "perplexity": 27000.0, "lr": 6.00e-04, "round_time": 50.5, "agg_time": 0.24, "apply_time": 0.12, "asr": 0.02},
+    {"round": 10,  "perplexity":   900.0, "lr": 5.97e-04, "round_time": 50.5, "agg_time": 0.24, "apply_time": 0.12, "asr": 0.04},
+    {"round": 50,  "perplexity":    65.0, "lr": 5.11e-04, "round_time": 50.5, "agg_time": 0.24, "apply_time": 0.12, "asr": 0.15},
+    {"round": 100, "perplexity":    23.0, "lr": 3.05e-04, "round_time": 50.5, "agg_time": 0.24, "apply_time": 0.12, "asr": 0.22},
+    {"round": 150, "perplexity":    16.0, "lr": 8.06e-05, "round_time": 50.5, "agg_time": 0.24, "apply_time": 0.12, "asr": 0.28},
+    {"round": 200, "perplexity":    14.0, "lr": 3.53e-08, "round_time": 50.5, "agg_time": 0.24, "apply_time": 0.12, "asr": 0.30}
+  ],
+  "expected_band": {
+    "perplexity_final": {"low": 10.0, "mid": 14.0, "high": 22.0},
+    "asr_final":        {"low": 0.05, "mid": 0.30, "high": 0.65, "computed": true},
+    "round_time":       {"low": 35.0, "mid": 50.5, "high": 91.0},
+    "agg_time":         {"low": 0.18, "mid": 0.24, "high": 0.32},
+    "band_semantics":   "low = oracle (best ASR), mid = realistic, high = degraded (worst ASR)",
+    "notes": "PRIMARY HEADLINE FIXTURE. AkashRep+FedAvg under backdoor with realistic Akash weights cuts ASR roughly in half versus undefended FedAvg (0.30 vs 0.60), at FedAvg's aggregation cost. This is the cheap-robust-aggregator story for the paper."
+  },
+  "comparison_to_baseline": {
+    "baseline_fixture": "results/expected/akash_backdoor_FedAvg_3c.json",
+    "baseline_asr_mid": 0.60,
+    "expected_gain_asr_realistic": 0.30,
+    "compare_also_against": "results/expected/akash_backdoor_Krum_3c.json (mid 0.08)",
+    "publishability_threshold": "AkashRep ASR mid < 0.40 -> publishable cheap-defense story",
+    "publishability_status_at_mid": "passes (0.30 < 0.40)"
+  }
+}

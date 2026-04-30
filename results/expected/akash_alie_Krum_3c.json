@@ -1,0 +1,30 @@
+{
+  "source": "synthetic expected-result fixture; see agent_docs/expected_akash_results.md",
+  "config": {
+    "model_size": "small",
+    "n_rounds": 200,
+    "batch_size": 8,
+    "lr": 0.0006,
+    "n_honest": 2,
+    "n_byz": 1,
+    "attack_type": "alie",
+    "defense": "Krum",
+    "lambda": 10.0,
+    "z_alie": 1.5
+  },
+  "rounds": [
+    {"round": 1,   "perplexity": 28000.0, "lr": 6.00e-04, "round_time": 58.0, "agg_time": 2.5, "apply_time": 0.12},
+    {"round": 10,  "perplexity":  1800.0, "lr": 5.97e-04, "round_time": 53.0, "agg_time": 2.5, "apply_time": 0.12},
+    {"round": 50,  "perplexity":   120.0, "lr": 5.11e-04, "round_time": 53.0, "agg_time": 2.5, "apply_time": 0.12},
+    {"round": 100, "perplexity":    40.0, "lr": 3.05e-04, "round_time": 53.0, "agg_time": 2.5, "apply_time": 0.12},
+    {"round": 150, "perplexity":    24.0, "lr": 8.06e-05, "round_time": 53.0, "agg_time": 2.5, "apply_time": 0.12},
+    {"round": 200, "perplexity":    19.0, "lr": 3.53e-08, "round_time": 53.0, "agg_time": 2.5, "apply_time": 0.12}
+  ],
+  "expected_band": {
+    "perplexity_final": {"low": 13.0, "mid": 19.0, "high": 30.0},
+    "asr_final":        {"computed": false},
+    "round_time":       {"low": 38.0, "mid": 53.0, "high": 95.0},
+    "agg_time":         {"low": 2.0, "mid": 2.5, "high": 3.2},
+    "notes": "Krum under ALIE: ALIE is designed specifically to slip past score-based rules (gradient close to honest mean), so expect modest degradation vs scaling+Krum."
+  }
+}

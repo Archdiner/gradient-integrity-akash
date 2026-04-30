@@ -1,0 +1,30 @@
+{
+  "source": "synthetic expected-result fixture; see agent_docs/expected_akash_results.md",
+  "config": {
+    "model_size": "small",
+    "n_rounds": 200,
+    "batch_size": 8,
+    "lr": 0.0006,
+    "n_honest": 2,
+    "n_byz": 1,
+    "attack_type": "backdoor",
+    "defense": "FedAvg",
+    "lambda": 10.0,
+    "z_alie": 1.5
+  },
+  "rounds": [
+    {"round": 1,   "perplexity": 26000.0, "lr": 6.00e-04, "round_time": 55.0, "agg_time": 0.19, "apply_time": 0.12, "asr": 0.02},
+    {"round": 10,  "perplexity":   900.0, "lr": 5.97e-04, "round_time": 50.0, "agg_time": 0.19, "apply_time": 0.12, "asr": 0.08},
+    {"round": 50,  "perplexity":    70.0, "lr": 5.11e-04, "round_time": 50.0, "agg_time": 0.19, "apply_time": 0.12, "asr": 0.30},
+    {"round": 100, "perplexity":    25.0, "lr": 3.05e-04, "round_time": 50.0, "agg_time": 0.19, "apply_time": 0.12, "asr": 0.45},
+    {"round": 150, "perplexity":    17.0, "lr": 8.06e-05, "round_time": 50.0, "agg_time": 0.19, "apply_time": 0.12, "asr": 0.55},
+    {"round": 200, "perplexity":    13.0, "lr": 3.53e-08, "round_time": 50.0, "agg_time": 0.19, "apply_time": 0.12, "asr": 0.60}
+  ],
+  "expected_band": {
+    "perplexity_final": {"low": 9.0, "mid": 13.0, "high": 19.0},
+    "asr_final":        {"low": 0.35, "mid": 0.60, "high": 0.85, "computed": true},
+    "round_time":       {"low": 35.0, "mid": 50.0, "high": 90.0},
+    "agg_time":         {"low": 0.15, "mid": 0.19, "high": 0.25},
+    "notes": "Backdoor attack on undefended FedAvg. Perplexity on clean data looks near-normal (stealthy) but ASR grows monotonically. This is the 'attack is potent' baseline -- if ASR stays below 0.20 here, the trigger injection is likely broken."
+  }
+}

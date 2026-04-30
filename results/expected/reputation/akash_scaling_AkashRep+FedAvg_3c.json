@@ -1,0 +1,40 @@
+{
+  "source": "synthetic expected-result fixture for the reputation-weighted defense; see agent_docs/expected_akash_reputation_results.md",
+  "config": {
+    "model_size": "small",
+    "n_rounds": 200,
+    "batch_size": 8,
+    "lr": 0.0006,
+    "n_honest": 2,
+    "n_byz": 1,
+    "attack_type": "scaling",
+    "defense": "AkashRep+FedAvg",
+    "lambda": 10.0,
+    "z_alie": 1.5,
+    "weights_realistic": {"honest": 0.85, "byzantine": 0.30},
+    "byz_share_of_aggregate_pct": 15.0
+  },
+  "rounds": [
+    {"round": 1,   "perplexity": 35000.0, "lr": 6.00e-04, "round_time": 50.5, "agg_time": 0.24, "apply_time": 0.12},
+    {"round": 10,  "perplexity":  4000.0, "lr": 5.97e-04, "round_time": 50.5, "agg_time": 0.24, "apply_time": 0.12},
+    {"round": 50,  "perplexity":   400.0, "lr": 5.11e-04, "round_time": 50.5, "agg_time": 0.24, "apply_time": 0.12},
+    {"round": 100, "perplexity":   100.0, "lr": 3.05e-04, "round_time": 50.5, "agg_time": 0.24, "apply_time": 0.12},
+    {"round": 150, "perplexity":    50.0, "lr": 8.06e-05, "round_time": 50.5, "agg_time": 0.24, "apply_time": 0.12},
+    {"round": 200, "perplexity":    30.0, "lr": 3.53e-08, "round_time": 50.5, "agg_time": 0.24, "apply_time": 0.12}
+  ],
+  "expected_band": {
+    "perplexity_final": {"low": 12.0, "mid": 30.0, "high": 110.0},
+    "asr_final":        {"computed": false},
+    "round_time":       {"low": 35.0, "mid": 50.5, "high": 91.0},
+    "agg_time":         {"low": 0.18, "mid": 0.24, "high": 0.32},
+    "band_semantics":   "low = oracle weights (w_byz=0.0), mid = realistic (w_byz=0.30), high = degraded (w_byz=0.70 from Sybil aging)",
+    "notes": "Reputation-weighted FedAvg under scaling attack. With realistic weights, Byzantine contribution drops from 33% (uniform) to 15%, cutting the effective scaled gradient shift from 3.3x to 1.5x. Recovery is non-trivial without any robust aggregator. Degraded-weight upper bound is *worse* than uniform FedAvg (110 vs 100), which is the Sybil-gaming corner case Section 8 must discuss."
+  },
+  "comparison_to_baseline": {
+    "baseline_fixture": "results/expected/akash_scaling_FedAvg_3c.json",
+    "baseline_perplexity_mid": 100.0,
+    "expected_gain_perplexity_realistic": 70.0,
+    "publishability_threshold": "AkashRep mid < 50 -> publishable cheap-defense story",
+    "publishability_status_at_mid": "passes (30 < 50)"
+  }
+}

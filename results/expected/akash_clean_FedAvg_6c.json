@@ -1,0 +1,30 @@
+{
+  "source": "synthetic expected-result fixture; see agent_docs/expected_akash_results.md",
+  "config": {
+    "model_size": "small",
+    "n_rounds": 200,
+    "batch_size": 8,
+    "lr": 0.0006,
+    "n_honest": 6,
+    "n_byz": 0,
+    "attack_type": "clean",
+    "defense": "FedAvg",
+    "lambda": 10.0,
+    "z_alie": 1.5
+  },
+  "rounds": [
+    {"round": 1,   "perplexity": 20000.0, "lr": 6.00e-04, "round_time": 70.0, "agg_time": 0.35, "apply_time": 0.12},
+    {"round": 10,  "perplexity":   500.0, "lr": 5.97e-04, "round_time": 65.0, "agg_time": 0.35, "apply_time": 0.12},
+    {"round": 50,  "perplexity":    40.0, "lr": 5.11e-04, "round_time": 65.0, "agg_time": 0.35, "apply_time": 0.12},
+    {"round": 100, "perplexity":    18.0, "lr": 3.05e-04, "round_time": 65.0, "agg_time": 0.35, "apply_time": 0.12},
+    {"round": 150, "perplexity":    12.0, "lr": 8.06e-05, "round_time": 65.0, "agg_time": 0.35, "apply_time": 0.12},
+    {"round": 200, "perplexity":    10.0, "lr": 3.53e-08, "round_time": 65.0, "agg_time": 0.35, "apply_time": 0.12}
+  ],
+  "expected_band": {
+    "perplexity_final": {"low": 7.0, "mid": 10.0, "high": 15.0},
+    "asr_final":        {"computed": false},
+    "round_time":       {"low": 45.0, "mid": 65.0, "high": 120.0},
+    "agg_time":         {"low": 0.25, "mid": 0.35, "high": 0.55},
+    "notes": "6-client clean baseline. Larger effective batch -> slightly faster descent, but more per-round network traffic (6 x 496 MB upload + 6 x 496 MB download)."
+  }
+}

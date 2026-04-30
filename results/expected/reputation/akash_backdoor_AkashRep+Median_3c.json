@@ -1,0 +1,40 @@
+{
+  "source": "synthetic expected-result fixture for the reputation-weighted defense; see agent_docs/expected_akash_reputation_results.md",
+  "config": {
+    "model_size": "small",
+    "n_rounds": 200,
+    "batch_size": 8,
+    "lr": 0.0006,
+    "n_honest": 2,
+    "n_byz": 1,
+    "attack_type": "backdoor",
+    "defense": "AkashRep+Median",
+    "lambda": 10.0,
+    "z_alie": 1.5,
+    "weights_realistic": {"honest": 0.85, "byzantine": 0.30},
+    "weight_use": "weighted coordinate-wise median (cumulative weight crosses 0.5 of total weight)"
+  },
+  "rounds": [
+    {"round": 1,   "perplexity": 27000.0, "lr": 6.00e-04, "round_time": 57.5, "agg_time": 6.85, "apply_time": 0.12, "asr": 0.02},
+    {"round": 10,  "perplexity":  1300.0, "lr": 5.97e-04, "round_time": 57.5, "agg_time": 6.85, "apply_time": 0.12, "asr": 0.02},
+    {"round": 50,  "perplexity":    90.0, "lr": 5.11e-04, "round_time": 57.5, "agg_time": 6.85, "apply_time": 0.12, "asr": 0.03},
+    {"round": 100, "perplexity":    30.0, "lr": 3.05e-04, "round_time": 57.5, "agg_time": 6.85, "apply_time": 0.12, "asr": 0.04},
+    {"round": 150, "perplexity":    20.0, "lr": 8.06e-05, "round_time": 57.5, "agg_time": 6.85, "apply_time": 0.12, "asr": 0.05},
+    {"round": 200, "perplexity":    17.0, "lr": 3.53e-08, "round_time": 57.5, "agg_time": 6.85, "apply_time": 0.12, "asr": 0.05}
+  ],
+  "expected_band": {
+    "perplexity_final": {"low": 11.0, "mid": 17.0, "high": 26.0},
+    "asr_final":        {"low": 0.02, "mid": 0.05, "high": 0.13, "computed": true},
+    "round_time":       {"low": 42.0, "mid": 57.5, "high": 100.5},
+    "agg_time":         {"low": 5.55, "mid": 6.85, "high": 8.55},
+    "band_semantics":   "low = oracle, mid = realistic, high = degraded",
+    "notes": "Weighted median tilts the per-coordinate selection toward higher-weight clients. Lowest expected ASR of the AkashRep variants (mid 0.05) tied with AkashRep+Krum, at higher agg_time. Story for the paper: only worth running this cell if AkashRep+Krum or AkashRep+TrimMean produce surprises."
+  },
+  "comparison_to_baseline": {
+    "baseline_fixture": "results/expected/akash_backdoor_Median_3c.json",
+    "baseline_asr_mid": 0.07,
+    "expected_gain_asr_realistic": 0.02,
+    "publishability_threshold": "AkashRep+Median ASR mid <= AkashRep+FedAvg ASR mid",
+    "publishability_status_at_mid": "passes (0.05 <= 0.30)"
+  }
+}
