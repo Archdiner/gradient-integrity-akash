@@ -1,0 +1,149 @@
+{
+  "source": "Summary index of synthetic expected-result fixtures for Akash Phase 2 runs.",
+  "reference_doc": "agent_docs/expected_akash_results.md",
+  "schema_matches": "results/akash_*.json (as produced by src/experiments/akash_fromscratch.py), with added expected_band block",
+  "model": {
+    "size": "small",
+    "params": 124000000,
+    "dataset": "TinyStories",
+    "n_rounds": 200
+  },
+  "bandwidth_assumed_mbps": [100, 500],
+  "gpu_class_assumed": "A10 / A100 equivalent (single per node)",
+  "fixtures": [
+    {
+      "file": "akash_clean_FedAvg_3c.json",
+      "defense": "FedAvg", "attack": "clean", "n_clients": 3,
+      "perplexity_final": {"low": 8.0, "mid": 12.0, "high": 18.0},
+      "asr_final": null,
+      "round_time":  {"low": 35.0, "mid": 50.0, "high": 90.0},
+      "agg_time":    {"low": 0.15, "mid": 0.19, "high": 0.25}
+    },
+    {
+      "file": "akash_clean_FedAvg_6c.json",
+      "defense": "FedAvg", "attack": "clean", "n_clients": 6,
+      "perplexity_final": {"low": 7.0, "mid": 10.0, "high": 15.0},
+      "asr_final": null,
+      "round_time":  {"low": 45.0, "mid": 65.0, "high": 120.0},
+      "agg_time":    {"low": 0.25, "mid": 0.35, "high": 0.55}
+    },
+    {
+      "file": "akash_scaling_FedAvg_3c.json",
+      "defense": "FedAvg", "attack": "scaling", "n_clients": 3,
+      "perplexity_final": {"low": 50.0, "mid": 100.0, "high": 300.0},
+      "asr_final": null,
+      "round_time":  {"low": 35.0, "mid": 50.0, "high": 90.0},
+      "agg_time":    {"low": 0.15, "mid": 0.19, "high": 0.25}
+    },
+    {
+      "file": "akash_scaling_Krum_3c.json",
+      "defense": "Krum", "attack": "scaling", "n_clients": 3,
+      "perplexity_final": {"low": 12.0, "mid": 18.0, "high": 28.0},
+      "asr_final": null,
+      "round_time":  {"low": 38.0, "mid": 53.0, "high": 95.0},
+      "agg_time":    {"low": 2.0, "mid": 2.5, "high": 3.2}
+    },
+    {
+      "file": "akash_scaling_MultiKrum_3c.json",
+      "defense": "MultiKrum", "attack": "scaling", "n_clients": 3,
+      "perplexity_final": {"low": 10.0, "mid": 14.0, "high": 20.0},
+      "asr_final": null,
+      "round_time":  {"low": 38.0, "mid": 53.0, "high": 95.0},
+      "agg_time":    {"low": 2.3, "mid": 2.8, "high": 3.5}
+    },
+    {
+      "file": "akash_scaling_TrimMean_3c.json",
+      "defense": "TrimMean", "attack": "scaling", "n_clients": 3,
+      "perplexity_final": {"low": 10.0, "mid": 15.0, "high": 22.0},
+      "asr_final": null,
+      "round_time":  {"low": 38.0, "mid": 53.0, "high": 95.0},
+      "agg_time":    {"low": 2.0, "mid": 2.5, "high": 3.2}
+    },
+    {
+      "file": "akash_scaling_Median_3c.json",
+      "defense": "Median", "attack": "scaling", "n_clients": 3,
+      "perplexity_final": {"low": 11.0, "mid": 16.0, "high": 24.0},
+      "asr_final": null,
+      "round_time":  {"low": 42.0, "mid": 57.0, "high": 100.0},
+      "agg_time":    {"low": 5.5, "mid": 6.8, "high": 8.5}
+    },
+    {
+      "file": "akash_alie_FedAvg_3c.json",
+      "defense": "FedAvg", "attack": "alie", "n_clients": 3,
+      "perplexity_final": {"low": 18.0, "mid": 30.0, "high": 60.0},
+      "asr_final": null,
+      "round_time":  {"low": 35.0, "mid": 50.0, "high": 90.0},
+      "agg_time":    {"low": 0.15, "mid": 0.19, "high": 0.25}
+    },
+    {
+      "file": "akash_alie_Krum_3c.json",
+      "defense": "Krum", "attack": "alie", "n_clients": 3,
+      "perplexity_final": {"low": 13.0, "mid": 19.0, "high": 30.0},
+      "asr_final": null,
+      "round_time":  {"low": 38.0, "mid": 53.0, "high": 95.0},
+      "agg_time":    {"low": 2.0, "mid": 2.5, "high": 3.2}
+    },
+    {
+      "file": "akash_alie_TrimMean_3c.json",
+      "defense": "TrimMean", "attack": "alie", "n_clients": 3,
+      "perplexity_final": {"low": 11.0, "mid": 17.0, "high": 26.0},
+      "asr_final": null,
+      "round_time":  {"low": 38.0, "mid": 53.0, "high": 95.0},
+      "agg_time":    {"low": 2.0, "mid": 2.5, "high": 3.2}
+    },
+    {
+      "file": "akash_backdoor_FedAvg_3c.json",
+      "defense": "FedAvg", "attack": "backdoor", "n_clients": 3,
+      "perplexity_final": {"low": 9.0, "mid": 13.0, "high": 19.0},
+      "asr_final":        {"low": 0.35, "mid": 0.60, "high": 0.85},
+      "round_time":  {"low": 35.0, "mid": 50.0, "high": 90.0},
+      "agg_time":    {"low": 0.15, "mid": 0.19, "high": 0.25}
+    },
+    {
+      "file": "akash_backdoor_Krum_3c.json",
+      "defense": "Krum", "attack": "backdoor", "n_clients": 3,
+      "perplexity_final": {"low": 12.0, "mid": 18.0, "high": 28.0},
+      "asr_final":        {"low": 0.02, "mid": 0.08, "high": 0.18},
+      "round_time":  {"low": 38.0, "mid": 53.0, "high": 95.0},
+      "agg_time":    {"low": 2.0, "mid": 2.5, "high": 3.2}
+    },
+    {
+      "file": "akash_backdoor_MultiKrum_3c.json",
+      "defense": "MultiKrum", "attack": "backdoor", "n_clients": 3,
+      "perplexity_final": {"low": 10.0, "mid": 15.0, "high": 22.0},
+      "asr_final":        {"low": 0.03, "mid": 0.10, "high": 0.20},
+      "round_time":  {"low": 38.0, "mid": 53.0, "high": 95.0},
+      "agg_time":    {"low": 2.3, "mid": 2.8, "high": 3.5}
+    },
+    {
+      "file": "akash_backdoor_TrimMean_3c.json",
+      "defense": "TrimMean", "attack": "backdoor", "n_clients": 3,
+      "perplexity_final": {"low": 11.0, "mid": 16.0, "high": 24.0},
+      "asr_final":        {"low": 0.02, "mid": 0.09, "high": 0.18},
+      "round_time":  {"low": 38.0, "mid": 53.0, "high": 95.0},
+      "agg_time":    {"low": 2.0, "mid": 2.5, "high": 3.2}
+    },
+    {
+      "file": "akash_backdoor_Median_3c.json",
+      "defense": "Median", "attack": "backdoor", "n_clients": 3,
+      "perplexity_final": {"low": 11.0, "mid": 17.0, "high": 26.0},
+      "asr_final":        {"low": 0.02, "mid": 0.07, "high": 0.15},
+      "round_time":  {"low": 42.0, "mid": 57.0, "high": 100.0},
+      "agg_time":    {"low": 5.5, "mid": 6.8, "high": 8.5}
+    },
+    {
+      "file": "akash_geomed_infeasible.json",
+      "defense": "GeoMed",
+      "status": "infeasible",
+      "reason": "aggregation cost dominates round time at 124M params (see fixture)"
+    }
+  ],
+  "drift_rules": {
+    "perplexity_outside_band_factor": 2.0,
+    "asr_backdoor_robust_defense_max": 0.25,
+    "agg_time_regression_factor": 3.0,
+    "round_time_consecutive_breach": {"factor": 4.0, "min_rounds": 5},
+    "fedavg_clean_must_be_better_than_fedavg_scaling": true,
+    "fedavg_backdoor_asr_min_if_attack_working": 0.20
+  }
+}

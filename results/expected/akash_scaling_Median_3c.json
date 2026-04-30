@@ -1,0 +1,30 @@
+{
+  "source": "synthetic expected-result fixture; see agent_docs/expected_akash_results.md",
+  "config": {
+    "model_size": "small",
+    "n_rounds": 200,
+    "batch_size": 8,
+    "lr": 0.0006,
+    "n_honest": 2,
+    "n_byz": 1,
+    "attack_type": "scaling",
+    "defense": "Median",
+    "lambda": 10.0,
+    "z_alie": 1.5
+  },
+  "rounds": [
+    {"round": 1,   "perplexity": 27000.0, "lr": 6.00e-04, "round_time": 62.0, "agg_time": 6.8, "apply_time": 0.12},
+    {"round": 10,  "perplexity":  1300.0, "lr": 5.97e-04, "round_time": 57.0, "agg_time": 6.8, "apply_time": 0.12},
+    {"round": 50,  "perplexity":    90.0, "lr": 5.11e-04, "round_time": 57.0, "agg_time": 6.8, "apply_time": 0.12},
+    {"round": 100, "perplexity":    30.0, "lr": 3.05e-04, "round_time": 57.0, "agg_time": 6.8, "apply_time": 0.12},
+    {"round": 150, "perplexity":    19.0, "lr": 8.06e-05, "round_time": 57.0, "agg_time": 6.8, "apply_time": 0.12},
+    {"round": 200, "perplexity":    16.0, "lr": 3.53e-08, "round_time": 57.0, "agg_time": 6.8, "apply_time": 0.12}
+  ],
+  "expected_band": {
+    "perplexity_final": {"low": 11.0, "mid": 16.0, "high": 24.0},
+    "asr_final":        {"computed": false},
+    "round_time":       {"low": 42.0, "mid": 57.0, "high": 100.0},
+    "agg_time":         {"low": 5.5, "mid": 6.8, "high": 8.5},
+    "notes": "Coordinate-wise median at n=3 is structurally similar to TrimMean f=1; cost higher because torch.median does a full sort per coordinate."
+  }
+}

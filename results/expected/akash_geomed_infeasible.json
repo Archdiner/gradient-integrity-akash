@@ -1,0 +1,15 @@
+{
+  "source": "synthetic expected-result fixture; see agent_docs/expected_akash_results.md",
+  "status": "infeasible",
+  "defense": "GeoMed",
+  "model_size": "small",
+  "model_params": 124000000,
+  "reason": "Geometric median via Weiszfeld iteration scales super-linearly with gradient dimension at the scales we measured. Scalability anchor measured 9.03 s/round at 10M parameters for GeoMed; a naive 12.4x extrapolation to 124M is ~112 s/round of aggregation alone, dominating the ~50 s network + compute round time for every other defense. Running 200 rounds would take >= 6 hours of pure aggregation time on top of compute and network, which is both economically wasteful on Akash and methodologically uninformative (it tests the aggregator implementation's scaling, not Byzantine resilience).",
+  "evidence": {
+    "scalability_json": "results/scalability_20260331_103845.json",
+    "measured_seconds_at_10M_params": 9.032979283388704,
+    "extrapolated_seconds_at_124M_params": 112.01,
+    "extrapolation_rule": "linear in D (actual scaling is worse than linear at high D for Weiszfeld); this is a lower bound on cost"
+  },
+  "recommendation": "Exclude GeoMed from the Phase 2 Akash run matrix. Keep the scalability measurement as the evidence in the paper (Section 6 per agent_docs/paper_structure.md). If GeoMed must be tested, do so only on the tiny model variant."
+}

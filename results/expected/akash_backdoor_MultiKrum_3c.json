@@ -1,0 +1,30 @@
+{
+  "source": "synthetic expected-result fixture; see agent_docs/expected_akash_results.md",
+  "config": {
+    "model_size": "small",
+    "n_rounds": 200,
+    "batch_size": 8,
+    "lr": 0.0006,
+    "n_honest": 2,
+    "n_byz": 1,
+    "attack_type": "backdoor",
+    "defense": "MultiKrum",
+    "lambda": 10.0,
+    "z_alie": 1.5
+  },
+  "rounds": [
+    {"round": 1,   "perplexity": 26000.0, "lr": 6.00e-04, "round_time": 58.0, "agg_time": 2.8, "apply_time": 0.12, "asr": 0.02},
+    {"round": 10,  "perplexity":  1000.0, "lr": 5.97e-04, "round_time": 53.0, "agg_time": 2.8, "apply_time": 0.12, "asr": 0.03},
+    {"round": 50,  "perplexity":    70.0, "lr": 5.11e-04, "round_time": 53.0, "agg_time": 2.8, "apply_time": 0.12, "asr": 0.06},
+    {"round": 100, "perplexity":    25.0, "lr": 3.05e-04, "round_time": 53.0, "agg_time": 2.8, "apply_time": 0.12, "asr": 0.08},
+    {"round": 150, "perplexity":    18.0, "lr": 8.06e-05, "round_time": 53.0, "agg_time": 2.8, "apply_time": 0.12, "asr": 0.10},
+    {"round": 200, "perplexity":    15.0, "lr": 3.53e-08, "round_time": 53.0, "agg_time": 2.8, "apply_time": 0.12, "asr": 0.10}
+  ],
+  "expected_band": {
+    "perplexity_final": {"low": 10.0, "mid": 15.0, "high": 22.0},
+    "asr_final":        {"low": 0.03, "mid": 0.10, "high": 0.20, "computed": true},
+    "round_time":       {"low": 38.0, "mid": 53.0, "high": 95.0},
+    "agg_time":         {"low": 2.3, "mid": 2.8, "high": 3.5},
+    "notes": "MultiKrum averages top-k; some backdoor signal may leak through the weighted average, so expected ASR ceiling is slightly above Krum."
+  }
+}
