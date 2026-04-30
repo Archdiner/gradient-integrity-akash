@@ -86,7 +86,10 @@ def main() -> None:
 
     api = wandb.Api()
     for run_id in args.run_ids:
-        export_run(api, args.entity, args.project, run_id, out_dir)
+        try:
+            export_run(api, args.entity, args.project, run_id, out_dir)
+        except Exception as e:
+            print(f"Error exporting run {run_id}: {e}")
 
 
 if __name__ == "__main__":
