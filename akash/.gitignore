@@ -1,0 +1,8 @@
+.env
+.env.*
+!.env.example
+
+*.log
+*.tar.gz
+deployments/
+leases/
