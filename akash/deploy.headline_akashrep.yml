@@ -1,14 +1,16 @@
 ---
-# Phase 2A: Calibration run -- clean / FedAvg / 3 simulated clients.
-# Deployment target: Akash Console (console.akash.network) post-BME, April 2026.
-# Validate this YAML in the Console's "Update SDL" pane before submitting.
+# Phase 2C: HEADLINE EXPERIMENT -- backdoor / AkashRep+FedAvg / 3 simulated clients.
+# Companion to results/expected/reputation/akash_backdoor_AkashRep+FedAvg_3c.json.
 #
-# Replaces a deprecated v0 of this file that used `denom: uakt`,
-# a non-array storage block, and a hardcoded W&B API key.
+# Phase 2C prerequisites: MET (as of current codebase).
+#   - src/defenses/reputation.py: ReputationWeightedAggregator implemented.
+#   - --defense AkashRep+FedAvg accepted; AKASH_REP_WEIGHTS env var parsed.
+#   - ASR logging wired (same as Phase 2B).
 #
-# Currency: uact (USD-pegged, post-BME). 1 ACT = 1,000,000 uact.
-# Max bid 5000 uact/block -> ~$72/day cap -> ~$9 for a 3-hour run.
-# A100 80GB market rate on Akash is typically $1-3/hour, so this is a safe ceiling.
+# The deployment passes the realistic-regime weights via env so the inner SDL
+# does not contain any operational secret beyond the W&B key.
+# Realistic regime: w_honest=0.85, w_byzantine=0.30. These are the headline
+# numbers from agent_docs/expected_akash_reputation_results.md.
 
 version: "2.0"
 
@@ -22,14 +24,14 @@ services:
         to:
           - global: true
     env:
-      # Provided via Akash Console "environment variables" panel at deploy time.
-      # NEVER commit a real key to this file or the image.
       - WANDB_API_KEY
       - WANDB_PROJECT=gradient-integrity-phase2
-      - WANDB_RUN_GROUP=phase2A_calibration
+      - WANDB_RUN_GROUP=phase2C_headline_akashrep
       - WANDB_MODE=online
       - HF_HUB_OFFLINE=0
       - PYTHONUNBUFFERED=1
+      - AKASH_REP_REGIME=realistic
+      - AKASH_REP_WEIGHTS=0.85,0.85,0.30
     args:
       - "--model"
       - "small"
@@ -42,11 +44,11 @@ services:
       - "--honest"
       - "2"
       - "--byz"
-      - "0"
+      - "1"
       - "--attack"
-      - "clean"
+      - "backdoor"
       - "--defense"
-      - "FedAvg"
+      - "AkashRep+FedAvg"
       - "--device"
       - "cuda"
       - "--output"

@@ -1,14 +1,16 @@
 ---
-# Phase 2A: Calibration run -- clean / FedAvg / 3 simulated clients.
-# Deployment target: Akash Console (console.akash.network) post-BME, April 2026.
-# Validate this YAML in the Console's "Update SDL" pane before submitting.
+# Phase 2C-Oracle: BEST-CASE BOUND -- backdoor / AkashRep+FedAvg / 3 simulated clients.
+# Companion to results/expected/reputation/akash_backdoor_AkashRep+FedAvg_3c.json
+# (oracle regime band).
 #
-# Replaces a deprecated v0 of this file that used `denom: uakt`,
-# a non-array storage block, and a hardcoded W&B API key.
+# Oracle regime: w_honest=1.00, w_byzantine=0.00.  Models a "perfect" Akash
+# reputation oracle that knows exactly which provider is Byzantine and zeroes
+# its contribution.  This is the upper-bound on what reputation weighting can
+# achieve and the strongest possible counter-claim for the paper.
 #
-# Currency: uact (USD-pegged, post-BME). 1 ACT = 1,000,000 uact.
-# Max bid 5000 uact/block -> ~$72/day cap -> ~$9 for a 3-hour run.
-# A100 80GB market rate on Akash is typically $1-3/hour, so this is a safe ceiling.
+# Together with deploy.headline_akashrep.yml (realistic) and
+# deploy.degraded_akashrep.yml (degraded) this gives the three-point ASR
+# attenuation curve the paper hypothesises.
 
 version: "2.0"
 
@@ -22,14 +24,14 @@ services:
         to:
           - global: true
     env:
-      # Provided via Akash Console "environment variables" panel at deploy time.
-      # NEVER commit a real key to this file or the image.
       - WANDB_API_KEY
       - WANDB_PROJECT=gradient-integrity-phase2
-      - WANDB_RUN_GROUP=phase2A_calibration
+      - WANDB_RUN_GROUP=phase2C_oracle_akashrep
       - WANDB_MODE=online
       - HF_HUB_OFFLINE=0
       - PYTHONUNBUFFERED=1
+      - AKASH_REP_REGIME=oracle
+      - AKASH_REP_WEIGHTS=1.0,1.0,0.0
     args:
       - "--model"
       - "small"
@@ -42,11 +44,11 @@ services:
       - "--honest"
       - "2"
       - "--byz"
-      - "0"
+      - "1"
       - "--attack"
-      - "clean"
+      - "backdoor"
       - "--defense"
-      - "FedAvg"
+      - "AkashRep+FedAvg"
       - "--device"
       - "cuda"
       - "--output"
