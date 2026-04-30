@@ -26,6 +26,7 @@ wandb/
 .idea/
 *.swp
 *.swo
+.ipynb_checkpoints/
 
 # OS
 .DS_Store

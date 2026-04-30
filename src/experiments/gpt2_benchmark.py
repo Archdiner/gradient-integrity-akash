@@ -353,7 +353,11 @@ def run_config(
 def main() -> None:
     global tokenizer
     
-    wandb.login(key="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")
+    wandb_key = os.environ.get("WANDB_API_KEY")
+    if wandb_key:
+        wandb.login(key=wandb_key)
+    else:
+        print("WARNING: WANDB_API_KEY not set; relying on existing wandb auth/session.")
     
     experiment_id = str(datetime.now().strftime("%Y%m%d_%H%M%S"))
     run_name = f"gpt2-{experiment_id}"
